@@ -160,3 +160,9 @@ $("#merge-products-save-button").on("click", function(e)
 		}
 	);
 });
+
+$(document).on("click", "#print-products-list-button", function(e)
+{
+	$(".print-timestamp").text(moment().format("l LT"));
+	window.print();
+});
