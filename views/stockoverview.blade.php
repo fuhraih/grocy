@@ -278,7 +278,7 @@
 								</a>
 								<a class="dropdown-item show-as-dialog-link"
 									type="button"
-									href="{{ $U('/stockentries?embedded&product=') }}{{ $currentStockEntry->product_id }}"
+									href="{{ $U('/stockentries?embedded&product=') }}{{ $currentStockEntry->product_id }}&children=1"
 									data-product-id="{{ $currentStockEntry->product_id }}">
 									<span class="dropdown-item-text">{{ $__t('Stock entries') }}</span>
 								</a>
