@@ -5,7 +5,7 @@
 @section('viewJsName', 'products')
 
 @section('content')
-<div class="row">
+<div class="row d-print-none ">
 	<div class="col">
 		<div class="title-related-links">
 			<h2 class="title">@yield('title')</h2>
@@ -37,14 +37,18 @@
 					href="{{ $U('/stocksettings#productpresets') }}">
 					{{ $__t('Presets for new products') }}
 				</a>
+				<a id="print-products-list-button" class="btn btn-outline-secondary m-1 mt-md-0 mb-md-0 float-right"
+					href="#">
+					{{ $__t('Print') }}
+				</a>
 			</div>
 		</div>
 	</div>
 </div>
 
-<hr class="my-2">
+<hr class="my-2 d-print-none ">
 
-<div class="row collapse d-md-flex"
+<div class="row collapse d-md-flex d-print-none "
 	id="table-filter-row">
 	<div class="col-12 col-md-6 col-xl-3">
 		<div class="input-group">
@@ -107,9 +111,16 @@
 
 <div class="row">
 	<div class="col">
+		<div class="d-none d-print-block text-center" id="print-header">
+			<h3>{{ $__t('List of products') }}</h3>
+			<h6 class="text-center mb-4">
+			{{ $__t('Time of printing') }}:
+			<span class="d-inline print-timestamp"></span>
+		</h6>
+		</div>
 		<table id="products-table"
 			class="table table-sm table-striped nowrap w-100">
-			<thead>
+			<thead class="d-print-none ">
 				<tr>
 					<th class="border-right"><a class="text-muted change-table-columns-visibility-button"
 							data-toggle="tooltip"
@@ -123,7 +134,7 @@
 					<th class="allow-grouping">{{ $__t('Min. stock amount') }}</th>
 					<th class="">{{ $__t('Default quantity unit purchase') }}</th>
 					<th class="allow-grouping">{{ $__t('Quantity unit stock') }}</th>
-					<th class="">{{ $__t('Product group') }}</th>
+					<th class="allow-grouping">{{ $__t('Product group') }}</th>
 					<th class="@if(!GROCY_FEATURE_FLAG_STOCK_PRICE_TRACKING) d-none @endif allow-grouping">{{ $__t('Default store') }}</th>
 					<th class="">{{ $__t('grocycode') }}</th>
 
@@ -136,7 +147,7 @@
 			<tbody class="d-none">
 				@foreach($products as $product)
 				<tr class="@if($product->active == 0) text-muted @endif">
-					<td class="fit-content border-right">
+					<td class="fit-content border-right d-print-none ">
 						<a class="btn btn-info btn-sm"
 							href="{{ $U('/product/') }}{{ $product->id }}"
 							data-toggle="tooltip"
