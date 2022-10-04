@@ -38,6 +38,7 @@
 		'isRequired' => false,
 		'additionalGroupCssClasses' => 'mb-0'
 		))
+		<input type="checkbox" id="include-children" /> <label for="include-children">{{ $__t('Include children products') }}</label>
 	</div>
 	@if(GROCY_FEATURE_FLAG_STOCK_LOCATION_TRACKING)
 	<div class="col-12 col-md-6 col-xl-3 mt-auto">
@@ -81,6 +82,7 @@
 							href="#"><i class="fa-solid fa-eye"></i></a>
 					</th>
 					<th class="d-none">Hidden product_id</th> <!-- This must be in the first column for searching -->
+					<th class="d-none">Hidden parent product_id</th> <!-- This must be in the second column for search including children products -->
 					<th class="allow-grouping">{{ $__t('Product') }}</th>
 					<th>{{ $__t('Amount') }}</th>
 					<th class="@if(!GROCY_FEATURE_FLAG_STOCK_BEST_BEFORE_DATE_TRACKING) d-none @endif allow-grouping">{{ $__t('Due date') }}</th>
@@ -251,6 +253,11 @@
 						data-product-id="{{ $stockEntry->product_id }}">
 						{{ $stockEntry->product_id }}
 					</td>
+					<td class="d-none"
+						data-product-id="{{ $stockEntry->product_id }}">
+						{{ FindObjectInArrayByPropertyValue($products, 'id', $stockEntry->product_id)->parent_product_id }}
+					</td>
+						
 					<td class="product-name-cell cursor-link"
 						data-product-id="{{ $stockEntry->product_id }}">
 						{{ FindObjectInArrayByPropertyValue($products, 'id', $stockEntry->product_id)->name }}
