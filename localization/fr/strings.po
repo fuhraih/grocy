@@ -2747,3 +2747,7 @@ msgstr "Nombre de décimales autorisés pour les prix (entrée utilisateur)"
 
 msgid "Decimal places allowed for prices (display)"
 msgstr "Nombre de décimales autorisés pour les prix (affichage)"
+
+msgid "Include children products"
+msgstr "Afficher également les produits fils"
+
