@@ -284,12 +284,12 @@
 								</a>
 								<a class="dropdown-item show-as-dialog-link"
 									type="button"
-									href="{{ $U('/stockjournal?embedded&product=') }}{{ $currentStockEntry->product_id }}">
+									href="{{ $U('/stockjournal?embedded&product=') }}{{ $currentStockEntry->product_id }}&children=1">
 									<span class="dropdown-item-text">{{ $__t('Stock journal') }}</span>
 								</a>
 								<a class="dropdown-item show-as-dialog-link"
 									type="button"
-									href="{{ $U('/stockjournal/summary?embedded&product_id=') }}{{ $currentStockEntry->product_id }}">
+									href="{{ $U('/stockjournal/summary?embedded&product_id=') }}{{ $currentStockEntry->product_id }}&children=1">
 									<span class="dropdown-item-text">{{ $__t('Stock journal summary') }}</span>
 								</a>
 								<a class="dropdown-item permission-MASTER_DATA_EDIT link-return"
