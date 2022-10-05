@@ -1,4 +1,4 @@
-﻿var stockJournalTable = $('#stock-journal-table').DataTable({
+var stockJournalTable = $('#stock-journal-table').DataTable({
 	'order': [[3, 'desc']],
 	'columnDefs': [
 		{ 'orderable': false, 'targets': 0 },
@@ -18,6 +18,21 @@ $("#product-filter").on("change", function()
 	else
 	{
 		UpdateUriParam("product", value);
+	}
+
+	window.location.reload();
+});
+
+$("#include-children").on("change", function()
+{
+	var value = $(this).prop("checked");
+	if (value)
+	{
+		UpdateUriParam("children", "1");
+	}
+	else
+	{
+		RemoveUriParam("children");
 	}
 
 	window.location.reload();
@@ -87,12 +102,18 @@ $("#clear-filter-button").on("click", function()
 
 	RemoveUriParam("months");
 	RemoveUriParam("product");
+	RemoveUriParam("children");
 	window.location.reload();
 });
 
 if (typeof GetUriParam("product") !== "undefined")
 {
 	$("#product-filter").val(GetUriParam("product"));
+}
+
+if (typeof GetUriParam("children") !== "undefined" && GetUriParam("children")=='1')
+{
+	$("#include-children").prop("checked", true);
 }
 
 if (typeof GetUriParam("months") !== "undefined")
