@@ -50,7 +50,19 @@ class StockController extends BaseController
 		if (isset($request->getQueryParams()['product']) && filter_var($request->getQueryParams()['product'], FILTER_VALIDATE_INT) !== false)
 		{
 			$productId = $request->getQueryParams()['product'];
-			$where .= " AND product_id = $productId";
+			$where .= " AND (product_id = $productId";
+			
+			if (isset($request->getQueryParams()['children']) && $request->getQueryParams()['children'] == '1') {
+				$where .= " OR product_id IN (";
+				$childList = $this->getDatabase()->products()->where("parent_product_id = $productId AND active = 1")->orderBy('name', 'COLLATE NOCASE')->fetchAll();
+				foreach ($childList as $key => $child) {
+					if ($key!=0) { $where .= ','; }
+					$where .= $child->getData()['id'];
+				}
+				$where .= "))";
+			} else {
+				$where .= ")";
+			}
 		}
 
 		$usersService = $this->getUsersService();
@@ -400,7 +412,6 @@ class StockController extends BaseController
 		{
 			return $this->renderPage($response, 'shoppinglistitemform', [
 				'products' => $this->getDatabase()->products()->where('active = 1')->orderBy('name', 'COLLATE NOCASE'),
-				'barcodes' => $this->getDatabase()->product_barcodes_comma_separated(),
 				'shoppingLists' => $this->getDatabase()->shopping_lists()->orderBy('name', 'COLLATE NOCASE'),
 				'mode' => 'create',
 				'quantityUnits' => $this->getDatabase()->quantity_units()->orderBy('name', 'COLLATE NOCASE'),
@@ -413,7 +424,6 @@ class StockController extends BaseController
 			return $this->renderPage($response, 'shoppinglistitemform', [
 				'listItem' => $this->getDatabase()->shopping_list($args['itemId']),
 				'products' => $this->getDatabase()->products()->where('active = 1')->orderBy('name', 'COLLATE NOCASE'),
-				'barcodes' => $this->getDatabase()->product_barcodes_comma_separated(),
 				'shoppingLists' => $this->getDatabase()->shopping_lists()->orderBy('name', 'COLLATE NOCASE'),
 				'mode' => 'edit',
 				'quantityUnits' => $this->getDatabase()->quantity_units()->orderBy('name', 'COLLATE NOCASE'),
@@ -528,9 +538,26 @@ class StockController extends BaseController
 	public function JournalSummary(\Psr\Http\Message\ServerRequestInterface $request, \Psr\Http\Message\ResponseInterface $response, array $args)
 	{
 		$entries = $this->getDatabase()->uihelper_stock_journal_summary();
-		if (isset($request->getQueryParams()['product_id']))
+
+		/*if (isset($request->getQueryParams()['product_id']))
 		{
 			$entries = $entries->where('product_id', $request->getQueryParams()['product_id']);
+		}*/
+		if (isset($request->getQueryParams()['product_id']) && filter_var($request->getQueryParams()['product_id'], FILTER_VALIDATE_INT) !== false)
+		{
+			$productId = $request->getQueryParams()['product_id'];
+			$where = "product_id = $productId";
+			
+			if (isset($request->getQueryParams()['children']) && $request->getQueryParams()['children'] == '1') {
+				$where .= " OR product_id IN (";
+				$childList = $this->getDatabase()->products()->where("parent_product_id = $productId AND active = 1")->orderBy('name', 'COLLATE NOCASE')->fetchAll();
+				foreach ($childList as $key => $child) {
+					if ($key!=0) { $where .= ','; }
+					$where .= $child->getData()['id'];
+				}
+				$where .= ")";
+			}
+			$entries = $entries->where($where);
 		}
 		if (isset($request->getQueryParams()['user_id']))
 		{
