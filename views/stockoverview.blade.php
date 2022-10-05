@@ -331,14 +331,19 @@
 						</span>
 						@if($currentStockEntry->is_aggregated_amount == 1)
 						<span class="@if($currentStockEntry->product_no_own_stock == 0) pl-1 @endif text-secondary">
-							<i class="fa-solid fa-custom-sigma-sign"></i> <span id="product-{{ $currentStockEntry->product_id }}-amount-aggregated"
-								class="locale-number locale-number-quantity-amount">{{ $currentStockEntry->amount_aggregated }}</span> {{ $__n($currentStockEntry->amount_aggregated, $currentStockEntry->qu_unit_name, $currentStockEntry->qu_unit_name_plural, true) }}
-							@if($currentStockEntry->amount_opened_aggregated > 0)
-							<span id="product-{{ $currentStockEntry->product_id }}-opened-amount-aggregated"
-								class="small font-italic">
-								{!! $__t('%s opened', '<span class="locale-number locale-number-quantity-amount">' . $currentStockEntry->amount_opened_aggregated . '</span>') !!}
-							</span>
-							@endif
+							<a class="show-as-dialog-link"
+										type="button"
+										href="{{ $U('/stockentries?embedded&product=') }}{{ $currentStockEntry->product_id }}&children=1"
+										data-product-id="{{ $currentStockEntry->product_id }}">
+								<i class="fa-solid fa-custom-sigma-sign"></i> <span id="product-{{ $currentStockEntry->product_id }}-amount-aggregated"
+									class="locale-number locale-number-quantity-amount">{{ $currentStockEntry->amount_aggregated }}</span> {{ $__n($currentStockEntry->amount_aggregated, $currentStockEntry->qu_unit_name, $currentStockEntry->qu_unit_name_plural, true) }}
+								@if($currentStockEntry->amount_opened_aggregated > 0)
+								<span id="product-{{ $currentStockEntry->product_id }}-opened-amount-aggregated"
+									class="small font-italic">
+									{!! $__t('%s opened', '<span class="locale-number locale-number-quantity-amount">' . $currentStockEntry->amount_opened_aggregated . '</span>') !!}
+								</span>
+								@endif
+							</a>
 						</span>
 						@endif
 						@if(boolval($userSettings['show_icon_on_stock_overview_page_when_product_is_on_shopping_list']))
