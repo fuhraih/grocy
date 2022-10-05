@@ -8,7 +8,7 @@ var journalSummaryTable = $('#stock-journal-summary-table').DataTable({
 $('#stock-journal-summary-table tbody').removeClass("d-none");
 journalSummaryTable.columns.adjust().draw();
 
-$("#product-filter").on("change", function()
+/*$("#product-filter").on("change", function()
 {
 	var value = $(this).val();
 	var text = $("#product-filter option:selected").text();
@@ -20,7 +20,46 @@ $("#product-filter").on("change", function()
 	{
 		journalSummaryTable.column(journalSummaryTable.colReorder.transpose(1)).search("^" + text + "$", true, false).draw();
 	}
+});*/
+$("#product-filter").on("change", function()
+{
+	var value = $(this).val();
+	if (value === "all")
+	{
+		RemoveUriParam("product_id");
+	}
+	else
+	{
+		UpdateUriParam("product_id", value);
+	}
+
+	window.location.reload();
 });
+
+$("#include-children").on("change", function()
+{
+	var value = $(this).prop("checked");
+	if (value)
+	{
+		UpdateUriParam("children", "1");
+	}
+	else
+	{
+		RemoveUriParam("children");
+	}
+
+	window.location.reload();
+});
+
+if (typeof GetUriParam("product_id") !== "undefined")
+{
+	$("#product-filter").val(GetUriParam("product_id"));
+}
+
+if (typeof GetUriParam("children") !== "undefined" && GetUriParam("children") == '1')
+{
+	$("#include-children").prop("checked", true);
+}
 
 $("#transaction-type-filter").on("change", function()
 {
@@ -64,8 +103,12 @@ $("#clear-filter-button").on("click", function()
 	$("#location-filter").val("all");
 	$("#user-filter").val("all");
 	$("#product-filter").val("all");
+	$("#include-children").prop("checked", false);
 	journalSummaryTable.column(journalSummaryTable.colReorder.transpose(1)).search("").draw();
 	journalSummaryTable.column(journalSummaryTable.colReorder.transpose(2)).search("").draw();
 	journalSummaryTable.column(journalSummaryTable.colReorder.transpose(3)).search("").draw();
 	journalSummaryTable.search("").draw();
+	RemoveUriParam("product_id");
+	RemoveUriParam("children");
+	window.location.reload();
 });
