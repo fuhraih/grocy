@@ -58,6 +58,7 @@
 				@endforeach
 			</select>
 		</div>
+		<input type="checkbox" id="include-children" /> <label for="include-children">{{ $__t('Include children products') }}</label>
 	</div>
 	<div class="col-12 col-md-6 col-xl-3">
 		<div class="input-group">
