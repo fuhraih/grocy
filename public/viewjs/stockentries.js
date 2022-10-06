@@ -1,25 +1,31 @@
-﻿var stockEntriesTable = $('#stockentries-table').DataTable({
+var stockEntriesTable = $('#stockentries-table').DataTable({
 	'order': [[2, 'asc']],
 	'columnDefs': [
 		{ 'orderable': false, 'targets': 0 },
 		{ 'searchable': false, "targets": 0 },
-		{ 'visible': false, 'targets': 10 },
+		{ 'visible': false, 'targets': 11 },
 		{ "type": "num", "targets": 1 },
-		{ "type": "num", "targets": 3 },
-		{ "type": "html", "targets": 4 },
-		{ "type": "html-num-fmt", "targets": 7 },
-		{ "type": "html", "targets": 8 },
-		{ "type": "html", "targets": 9 }
+		{ "type": "num", "targets": 4 },
+		{ "type": "html", "targets": 5 },
+		{ "type": "html-num-fmt", "targets": 8 },
+		{ "type": "html", "targets": 9 },
+		{ "type": "html", "targets": 10 }
 	].concat($.fn.dataTable.defaults.columnDefs)
 });
 $('#stockentries-table tbody').removeClass("d-none");
 stockEntriesTable.columns.adjust().draw();
 
+if (GetUriParam('children')=='1') {
+	$("#include-children").prop("checked", true);
+}
+
 $.fn.dataTable.ext.search.push(function(settings, data, dataIndex)
 {
 	var productId = Grocy.Components.ProductPicker.GetValue();
 
-	if ((isNaN(productId) || productId == "" || productId == data[1]))
+	var includeChildren = $("#include-children").prop("checked");
+
+	if ((isNaN(productId) || productId == "" || productId == data[1] || (productId == data[2] && includeChildren)))
 	{
 		return true;
 	}
@@ -44,7 +50,12 @@ $("#location-filter").on("change", function()
 		text = "";
 	}
 
-	stockEntriesTable.column(stockEntriesTable.colReorder.transpose(5)).search(text).draw();
+	stockEntriesTable.column(stockEntriesTable.colReorder.transpose(6)).search(text).draw();
+});
+
+$("#include-children").on("change", function()
+{
+	stockEntriesTable.draw();
 });
 
 Grocy.Components.ProductPicker.GetPicker().on('change', function(e)
@@ -133,7 +144,7 @@ $(document).on('click', '.product-open-button', function(e)
 					Grocy.FrontendHelpers.EndUiBusy();
 					toastr.success(__t('Marked %1$s of %2$s as opened', 1 + " " + productQuName, productName) + '<br><a class="btn btn-secondary btn-sm mt-2" href="#" onclick="UndoStockBookingEntry(' + bookingResponse[0].id + ',' + stockRowId + ')"><i class="fa-solid fa-undo"></i> ' + __t("Undo") + '</a>');
 
-					if (result.product.move_on_open == 1 && result.default_consume_location != null)
+					if (result.product.move_on_open == 1)
 					{
 						toastr.info('<span>' + __t("Moved to %1$s", result.default_consume_location.name) + "</span> <i class='fa-solid fa-exchange-alt'></i>");
 					}
