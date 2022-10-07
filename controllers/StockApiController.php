@@ -615,6 +615,18 @@ class StockApiController extends BaseApiController
 		}
 	}
 
+	public function ProductDetailsChildren(\Psr\Http\Message\ServerRequestInterface $request, \Psr\Http\Message\ResponseInterface $response, array $args)
+	{
+		try
+		{
+			return $this->ApiResponse($response, $this->getStockService()->GetProductDetailsChildren($args['productId']));
+		}
+		catch (\Exception $ex)
+		{
+			return $this->GenericErrorResponse($response, $ex->getMessage());
+		}
+	}
+
 	public function ProductDetailsByBarcode(\Psr\Http\Message\ServerRequestInterface $request, \Psr\Http\Message\ResponseInterface $response, array $args)
 	{
 		try
@@ -648,7 +660,7 @@ class StockApiController extends BaseApiController
 			$allowSubproductSubstitution = true;
 		}
 
-		return $this->FilteredApiResponse($response, $this->getStockService()->GetProductStockEntries($args['productId'], false, $allowSubproductSubstitution), $request->getQueryParams());
+		return $this->FilteredApiResponse($response, $this->getStockService()->GetProductStockEntries($args['productId'], false, $allowSubproductSubstitution, true), $request->getQueryParams());
 	}
 
 	public function LocationStockEntries(\Psr\Http\Message\ServerRequestInterface $request, \Psr\Http\Message\ResponseInterface $response, array $args)

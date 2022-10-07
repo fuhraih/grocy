@@ -2751,3 +2751,11 @@ msgstr "Nombre de décimales autorisés pour les prix (affichage)"
 msgid "Include children products"
 msgstr "Afficher également les produits fils"
 
+msgid "Include children products"
+msgstr "Afficher également les produits fils"
+
+msgid "Loading..."
+msgstr " Chargement en cours..."
+
+msgid "No child product found"
+msgid "Aucun produit enfant trouvé"

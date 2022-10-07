@@ -406,7 +406,7 @@ class StockService extends BaseService
 				$potentialStockEntries = FindAllObjectsInArrayByPropertyValue($potentialStockEntries, 'stock_id', $specificStockEntryId);
 			}
 
-			$productStockAmount = floatval($productDetails->stock_amount_aggregated);
+			$productStockAmount = SumArrayValue($potentialStockEntries, 'amount');
 			if ($amount > $productStockAmount)
 			{
 				throw new \Exception('Amount to be consumed cannot be > current stock amount (if supplied, at the desired location)');
@@ -492,6 +492,8 @@ class StockService extends BaseService
 					$amount = 0;
 				}
 			}
+
+			$this->CompactStockEntries($productId);
 
 			if (boolval($this->getUsersService()->GetUserSetting(GROCY_USER_ID, 'shopping_list_auto_add_below_min_stock_amount')))
 			{
@@ -675,15 +677,7 @@ class StockService extends BaseService
 
 	public function GetMissingProducts()
 	{
-		$missingProductsResponse = $this->getDatabaseService()->ExecuteDbQuery('SELECT * FROM stock_missing_products')->fetchAll(\PDO::FETCH_OBJ);
-
-		$relevantProducts = $this->getDatabase()->products()->where('id IN (SELECT id FROM stock_missing_products)');
-		foreach ($relevantProducts as $product)
-		{
-			FindObjectInArrayByPropertyValue($missingProductsResponse, 'id', $product->id)->product = $product;
-		}
-
-		return $missingProductsResponse;
+		return $this->getDatabaseService()->ExecuteDbQuery('SELECT * FROM stock_missing_products')->fetchAll(\PDO::FETCH_OBJ);
 	}
 
 	public function GetProductDetails(int $productId)
@@ -746,6 +740,8 @@ class StockService extends BaseService
 			$defaultConsumeLocation = $this->getDatabase()->locations($product->default_consume_location_id);
 		}
 
+		$sql_on_shopping_list = "SELECT EXISTS(SELECT * FROM shopping_list WHERE shopping_list.product_id = " . $productId . ") AS on_shopping_list";
+
 		return [
 			'product' => $product,
 			'product_barcodes' => $productBarcodes,
@@ -770,8 +766,19 @@ class StockService extends BaseService
 			'spoil_rate_percent' => $spoilRate,
 			'is_aggregated_amount' => $stockCurrentRow->is_aggregated_amount,
 			'has_childs' => $this->getDatabase()->products()->where('parent_product_id = :1', $product->id)->count() !== 0,
-			'default_consume_location' => $defaultConsumeLocation
+			'default_consume_location' => $defaultConsumeLocation,
+			'on_shopping_list' => $this->getDatabaseService()->ExecuteDbQuery($sql_on_shopping_list)->fetch(\PDO::FETCH_OBJ)->on_shopping_list
 		];
+	}
+
+	public function GetProductDetailsChildren(int $productId) {
+		$result = array();
+		$children = $this->getDatabase()->products()->where('parent_product_id = :1', $productId)->fetchAll();
+		foreach ($children as $child) {
+			$child_res = $this->GetProductDetails($child->id);
+			$result[] = $child_res;
+		}
+		return $result;
 	}
 
 	public function GetProductIdFromBarcode(string $barcode)
@@ -819,7 +826,7 @@ class StockService extends BaseService
 		return $returnData;
 	}
 
-	public function GetProductStockEntries($productId, $excludeOpened = false, $allowSubproductSubstitution = false)
+	public function GetProductStockEntries($productId, $excludeOpened = false, $allowSubproductSubstitution = false, $ordered = true)
 	{
 		$sqlWhereProductId = 'product_id = ' . $productId;
 		if ($allowSubproductSubstitution)
@@ -833,7 +840,14 @@ class StockService extends BaseService
 			$sqlWhereAndOpen = 'AND open = 0';
 		}
 
-		return $this->getDatabase()->stock_next_use()->where($sqlWhereProductId . ' ' . $sqlWhereAndOpen);
+		$result = $this->getDatabase()->stock_next_use()->where($sqlWhereProductId . ' ' . $sqlWhereAndOpen);
+
+		if ($ordered)
+		{
+			return $result->orderBy('product_id', 'ASC')->orderBy('priority', 'DESC');
+		}
+
+		return $result;
 	}
 
 	public function GetLocationStockEntries($locationId)
@@ -848,7 +862,7 @@ class StockService extends BaseService
 
 	public function GetProductStockEntriesForLocation($productId, $locationId, $excludeOpened = false, $allowSubproductSubstitution = false)
 	{
-		$stockEntries = $this->GetProductStockEntries($productId, $excludeOpened, $allowSubproductSubstitution);
+		$stockEntries = $this->GetProductStockEntries($productId, $excludeOpened, $allowSubproductSubstitution, true);
 		return FindAllObjectsInArrayByPropertyValue($stockEntries, 'location_id', $locationId);
 	}
 
@@ -1009,8 +1023,7 @@ class StockService extends BaseService
 					'price' => $stockEntry->price,
 					'opened_date' => date('Y-m-d'),
 					'transaction_id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRow->save();
 
@@ -1035,8 +1048,7 @@ class StockService extends BaseService
 					'location_id' => $stockEntry->location_id,
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'stock_id' => $stockEntry->stock_id,
-					'price' => $stockEntry->price,
-					'note' => $stockEntry->note
+					'price' => $stockEntry->price
 				]);
 				$newStockRow->save();
 
@@ -1052,8 +1064,7 @@ class StockService extends BaseService
 					'price' => $stockEntry->price,
 					'opened_date' => date('Y-m-d'),
 					'transaction_id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRow->save();
 
@@ -1303,8 +1314,7 @@ class StockService extends BaseService
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'correlation_id' => $correlationId,
 					'transaction_Id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRowForLocationFrom->save();
 
@@ -1321,8 +1331,7 @@ class StockService extends BaseService
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'correlation_id' => $correlationId,
 					'transaction_Id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRowForLocationTo->save();
 
@@ -1351,8 +1360,7 @@ class StockService extends BaseService
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'correlation_id' => $correlationId,
 					'transaction_Id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRowForLocationFrom->save();
 
@@ -1369,8 +1377,7 @@ class StockService extends BaseService
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'correlation_id' => $correlationId,
 					'transaction_Id' => $transactionId,
-					'user_id' => GROCY_USER_ID,
-					'note' => $stockEntry->note
+					'user_id' => GROCY_USER_ID
 				]);
 				$logRowForLocationTo->save();
 
@@ -1390,8 +1397,7 @@ class StockService extends BaseService
 					'location_id' => $locationIdTo,
 					'shopping_location_id' => $stockEntry->shopping_location_id,
 					'open' => $stockEntry->open,
-					'opened_date' => $stockEntry->opened_date,
-					'note' => $stockEntry->note
+					'opened_date' => $stockEntry->opened_date
 				]);
 				$stockEntryNew->save();
 
@@ -1452,8 +1458,7 @@ class StockService extends BaseService
 				'price' => $logRow->price,
 				'opened_date' => $logRow->opened_date,
 				'open' => $logRow->opened_date !== null,
-				'location_id' => $logRow->location_id,
-				'note' => $logRow->note
+				'location_id' => $logRow->location_id
 			]);
 			$stockRow->save();
 
@@ -1503,8 +1508,7 @@ class StockService extends BaseService
 					'purchased_date' => $logRow->purchased_date,
 					'stock_id' => $logRow->stock_id,
 					'price' => $logRow->price,
-					'opened_date' => $logRow->opened_date,
-					'note' => $logRow->note
+					'opened_date' => $logRow->opened_date
 				]);
 				$stockRow->save();
 			}
@@ -1569,8 +1573,7 @@ class StockService extends BaseService
 				'price' => $logRow->price,
 				'location_id' => $logRow->location_id,
 				'open' => $open,
-				'opened_date' => $openedDate,
-				'note' => $logRow->note
+				'opened_date' => $openedDate
 			]);
 
 			// Update log entry

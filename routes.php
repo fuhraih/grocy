@@ -34,6 +34,7 @@ $app->group('', function (RouteCollectorProxy $group) {
 
 	// Stock master data routes
 	$group->get('/products', '\Grocy\Controllers\StockController:ProductsList');
+	$group->get('/productscatalog', '\Grocy\Controllers\StockController:ProductsCatalog');
 	$group->get('/product/{productId}', '\Grocy\Controllers\StockController:ProductEditForm');
 	$group->get('/quantityunits', '\Grocy\Controllers\StockController:QuantityUnitsList');
 	$group->get('/quantityunit/{quantityunitId}', '\Grocy\Controllers\StockController:QuantityUnitEditForm');
@@ -194,6 +195,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 	$group->put('/stock/entry/{entryId}', '\Grocy\Controllers\StockApiController:EditStockEntry');
 	$group->get('/stock/volatile', '\Grocy\Controllers\StockApiController:CurrentVolatileStock');
 	$group->get('/stock/products/{productId}', '\Grocy\Controllers\StockApiController:ProductDetails');
+	$group->get('/stock/products-children/{productId}', '\Grocy\Controllers\StockApiController:ProductDetailsChildren');
 	$group->get('/stock/products/{productId}/entries', '\Grocy\Controllers\StockApiController:ProductStockEntries');
 	$group->get('/stock/products/{productId}/locations', '\Grocy\Controllers\StockApiController:ProductStockLocations');
 	$group->get('/stock/products/{productId}/price-history', '\Grocy\Controllers\StockApiController:ProductPriceHistory');

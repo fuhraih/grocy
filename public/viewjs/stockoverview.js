@@ -1,15 +1,15 @@
 ﻿var stockOverviewTable = $('#stock-overview-table').DataTable({
-	'order': [[5, 'asc']],
+	'order': [[6, 'asc']],
 	'columnDefs': [
 		{ 'orderable': false, 'targets': 0 },
 		{ 'searchable': false, "targets": 0 },
-		{ 'searchable': false, "targets": 0 },
-		{ 'visible': false, 'targets': 6 },
+		{ 'orderable': false, 'targets': 1 },
+		{ 'searchable': false, "targets": 1 },
 		{ 'visible': false, 'targets': 7 },
 		{ 'visible': false, 'targets': 8 },
-		{ 'visible': false, 'targets': 2 },
-		{ 'visible': false, 'targets': 4 },
 		{ 'visible': false, 'targets': 9 },
+		{ 'visible': false, 'targets': 3 },
+		{ 'visible': false, 'targets': 5 },
 		{ 'visible': false, 'targets': 10 },
 		{ 'visible': false, 'targets': 11 },
 		{ 'visible': false, 'targets': 12 },
@@ -19,15 +19,16 @@
 		{ 'visible': false, 'targets': 16 },
 		{ 'visible': false, 'targets': 17 },
 		{ 'visible': false, 'targets': 18 },
-		{ "type": "num", "targets": 3 },
-		{ "type": "html-num-fmt", "targets": 9 },
+		{ 'visible': false, 'targets': 19 },
+		{ "type": "num", "targets": 4 },
 		{ "type": "html-num-fmt", "targets": 10 },
-		{ "type": "html", "targets": 5 },
-		{ "type": "html", "targets": 11 },
-		{ "type": "html-num-fmt", "targets": 12 },
-		{ "type": "num", "targets": 13 },
-		{ "type": "html-num-fmt", "targets": 4 },
-		{ "type": "html-num-fmt", "targets": 18 }
+		{ "type": "html-num-fmt", "targets": 11 },
+		{ "type": "html", "targets": 6 },
+		{ "type": "html", "targets": 12 },
+		{ "type": "html-num-fmt", "targets": 13 },
+		{ "type": "num", "targets": 14 },
+		{ "type": "html-num-fmt", "targets": 5 },
+		{ "type": "html-num-fmt", "targets": 19 }
 	].concat($.fn.dataTable.defaults.columnDefs)
 });
 
@@ -47,7 +48,7 @@ $("#location-filter").on("change", function()
 		value = "xx" + value + "xx";
 	}
 
-	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(6)).search(value).draw();
+	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(7)).search(value).draw();
 });
 
 $("#product-group-filter").on("change", function()
@@ -62,7 +63,7 @@ $("#product-group-filter").on("change", function()
 		value = "xx" + value + "xx";
 	}
 
-	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(8)).search(value).draw();
+	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(9)).search(value).draw();
 });
 
 $("#status-filter").on("change", function()
@@ -76,7 +77,7 @@ $("#status-filter").on("change", function()
 	// Transfer CSS classes of selected element to dropdown element (for background)
 	$(this).attr("class", $("#" + $(this).attr("id") + " option[value='" + value + "']").attr("class") + " form-control");
 
-	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(7)).search(value).draw();
+	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(8)).search(value).draw();
 });
 
 $(".status-filter-message").on("click", function()
@@ -92,9 +93,9 @@ $("#clear-filter-button").on("click", function()
 	$("#status-filter").val("all");
 	$("#product-group-filter").val("all");
 	$("#location-filter").val("all");
-	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(6)).search("").draw();
 	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(7)).search("").draw();
 	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(8)).search("").draw();
+	stockOverviewTable.column(stockOverviewTable.colReorder.transpose(9)).search("").draw();
 	stockOverviewTable.search("").draw();
 });
 
@@ -209,7 +210,7 @@ $(document).on('click', '.product-open-button', function(e)
 					Grocy.FrontendHelpers.EndUiBusy();
 					toastr.success(__t('Marked %1$s of %2$s as opened', parseFloat(amount).toLocaleString({ minimumFractionDigits: 0, maximumFractionDigits: Grocy.UserSettings.stock_decimal_places_amounts }) + " " + productQuName, productName) + '<br><a class="btn btn-secondary btn-sm mt-2" href="#" onclick="UndoStockTransaction(\'' + bookingResponse[0].transaction_id + '\')"><i class="fa-solid fa-undo"></i> ' + __t("Undo") + '</a>');
 
-					if (result.product.move_on_open == 1 && result.default_consume_location != null)
+					if (result.product.move_on_open == 1)
 					{
 						toastr.info('<span>' + __t("Moved to %1$s", result.default_consume_location.name) + "</span> <i class='fa-solid fa-exchange-alt'></i>");
 					}
@@ -267,15 +268,10 @@ function RefreshStatistics()
 	Grocy.Api.Get('stock/volatile?due_soon_days=' + nextXDays,
 		function(result)
 		{
-			var dueProducts = result.due_products.filter(x => !BoolVal(x.product.hide_on_stock_overview));
-			var overdueProducts = result.overdue_products.filter(x => !BoolVal(x.product.hide_on_stock_overview));
-			var expiredProducts = result.expired_products.filter(x => !BoolVal(x.product.hide_on_stock_overview));
-			var missingProducts = result.missing_products.filter(x => !BoolVal(x.product.hide_on_stock_overview));
-
-			$("#info-duesoon-products").html('<span class="d-block d-md-none">' + dueProducts.length + ' <i class="fa-solid fa-clock"></i></span><span class="d-none d-md-block">' + __n(dueProducts.length, '%s product is due', '%s products are due') + ' ' + __n(nextXDays, 'within the next day', 'within the next %s days') + '</span>');
-			$("#info-overdue-products").html('<span class="d-block d-md-none">' + overdueProducts.length + ' <i class="fa-solid fa-times-circle"></i></span><span class="d-none d-md-block">' + __n(overdueProducts.length, '%s product is overdue', '%s products are overdue') + '</span>');
-			$("#info-expired-products").html('<span class="d-block d-md-none">' + expiredProducts.length + ' <i class="fa-solid fa-times-circle"></i></span><span class="d-none d-md-block">' + __n(expiredProducts.length, '%s product is expired', '%s products are expired') + '</span>');
-			$("#info-missing-products").html('<span class="d-block d-md-none">' + missingProducts.length + ' <i class="fa-solid fa-exclamation-circle"></i></span><span class="d-none d-md-block">' + __n(missingProducts.length, '%s product is below defined min. stock amount', '%s products are below defined min. stock amount') + '</span>');
+			$("#info-duesoon-products").html('<span class="d-block d-md-none">' + result.due_products.length + ' <i class="fa-solid fa-clock"></i></span><span class="d-none d-md-block">' + __n(result.due_products.length, '%s product is due', '%s products are due') + ' ' + __n(nextXDays, 'within the next day', 'within the next %s days') + '</span>');
+			$("#info-overdue-products").html('<span class="d-block d-md-none">' + result.overdue_products.length + ' <i class="fa-solid fa-times-circle"></i></span><span class="d-none d-md-block">' + __n(result.overdue_products.length, '%s product is overdue', '%s products are overdue') + '</span>');
+			$("#info-expired-products").html('<span class="d-block d-md-none">' + result.expired_products.length + ' <i class="fa-solid fa-times-circle"></i></span><span class="d-none d-md-block">' + __n(result.expired_products.length, '%s product is expired', '%s products are expired') + '</span>');
+			$("#info-missing-products").html('<span class="d-block d-md-none">' + result.missing_products.length + ' <i class="fa-solid fa-exclamation-circle"></i></span><span class="d-none d-md-block">' + __n(result.missing_products.length, '%s product is below defined min. stock amount', '%s products are below defined min. stock amount') + '</span>');
 		},
 		function(xhr)
 		{
@@ -408,5 +404,81 @@ $(window).on("message", function(e)
 	{
 		RefreshProductRow(data.Payload);
 		RefreshStatistics();
+	}
+});
+
+function showChildren(productId, row, tr)
+{
+	Grocy.Api.Get('stock/products-children/' + productId,
+		function(result)
+		{
+			trString = '';
+			if (result.length > 0)
+			{
+				$.each(result, function(index, value)
+				{
+					trString += '<tr><td style="border:0;"></td><td style="border:0;"></td>'
+						+ '<td style="border: 1px solid #dee2e6;" class="product-name-cell cursor-link"'
+						+ ' data-product-id="' + value.product.id + '"><span>' + value.product.name
+						+ '</span> : <span';
+					if (value.product.no_own_stock == 1) { trString += '} class="d-none"' }
+					trString += '>'
+						+ '<span class="locale-number locale-number-quantity-amount">' + value.stock_amount + '</span> <span>' + __n(value.stock_amount, value.quantity_unit_stock.name, value.quantity_unit_stock.name_plural) + '</span>'
+						+ ' <span class="small font-italic">';
+					if (value.stock_amount_opened > 0) { trString += __t('%s opened', value.stock_amount_opened) }
+					trString += '</span>'
+						+ '</span>';
+					if (value.on_shopping_list == 1)
+					{
+						trString += ' <span class="text-muted cursor-normal" data-toggle="tooltip"'
+							+ 'title="' + __t('This product is currently on a shopping list') + '">'
+							+ '<i class="fa-solid fa-shopping-cart"></i>'
+							+ '</span>';
+					}
+					trString += '</td>'
+						+ '</tr>';
+				});
+			} else
+			{
+				trString = '<tr><td style="border:0;"></td><td style="border:0;"></td>'
+					+ '<td style="border: 1px solid #dee2e6;">' + __t('No child product found') + '</td>';
+			}
+			row.child($(trString).toArray()).show();
+			tr.addClass('shown');
+		},
+		function(xhr)
+		{
+			Grocy.FrontendHelpers.EndUiBusy();
+			console.error(xhr);
+		}
+	);
+}
+
+$('#stock-overview-table').on('click', 'td.details-control', function(e)
+{
+	var tr = $(this).closest('tr');
+	var row = stockOverviewTable.row(tr);
+	productId = $(e.currentTarget).attr("data-product-id")
+
+	if (row.child.isShown())
+	{
+		// This row is already open - close it
+		row.child.hide();
+		tr.removeClass('shown');
+		$('#show-details-' + productId).removeClass('fa-circle-minus');
+		$('#show-details-' + productId).addClass('fa-circle-plus');
+		$('#show-details-' + productId).removeClass('text-danger');
+		$('#show-details-' + productId).addClass('text-success');
+	}
+	else
+	{
+		// Open this row
+		row.child($('<tr><td></td><td></td><td>' + __t("Loading...") + '</td>').toArray()).show();
+		tr.addClass('shown');
+		$('#show-details-' + productId).removeClass('fa-circle-plus');
+		$('#show-details-' + productId).addClass('fa-circle-minus');
+		$('#show-details-' + productId).removeClass('text-success');
+		$('#show-details-' + productId).addClass('text-danger');
+		showChildren(productId, row, tr);
 	}
 });
