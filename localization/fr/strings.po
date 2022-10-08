@@ -2752,10 +2752,10 @@ msgid "Include children products"
 msgstr "Afficher également les produits fils"
 
 msgid "Include children products"
-msgstr "Afficher également les produits fils"
+msgstr "Afficher également les sous-produits"
 
 msgid "Loading..."
 msgstr " Chargement en cours..."
 
 msgid "No child product found"
-msgid "Aucun produit enfant trouvé"
+msgid "Aucun sous-produit trouvé"
